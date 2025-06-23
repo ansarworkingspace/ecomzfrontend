@@ -6,7 +6,7 @@ import Footer from "./(components)/Footer/FooterSection";
 const HomePage = () => {
   return (
     <div className="min-h-screen bg-white">
-  
+      <Header />
       <HeroSection />
       <ProductsSection />
       <Footer />
