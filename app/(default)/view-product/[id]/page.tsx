@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Heart,
   Star,
@@ -10,201 +10,47 @@ import {
   Plus,
   Minus,
 } from "lucide-react";
+import { useRouter, useParams } from "next/navigation";
+
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL_CUSTOMER;
 
 const ProductDetailPage = () => {
-  // Sample data with dynamic options structure
-  const productData = {
-    success: true,
-    message: "Product details fetched successfully",
-    data: {
-      _id: "6858160cb37cd4aae6c9beaf",
-      name: "Premium Cotton T-Shirt",
-      description:
-        "High-quality 100% cotton t-shirt with comfortable fit. Perfect for casual wear and everyday comfort. Made from sustainably sourced materials with a focus on durability and style.",
-      category: "T-Shirts",
-      isFeatured: true,
-      mainImage:
-        "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=600&h=600&fit=crop",
-      status: "active",
-      variants: [
-        {
-          _id: "6858160cb37cd4aae6c9beb4",
-          sku: "TSHIRT-BLK-M-COTTON",
-          price: 25.99,
-          salePrice: 19.99,
-          quantity: 71,
-          images: [
-            "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=600&h=600&fit=crop",
-            "https://images.unsplash.com/photo-1562157873-818bc0726f68?w=600&h=600&fit=crop",
-            "https://images.unsplash.com/photo-1583743814966-8936f37f5b6e?w=600&h=600&fit=crop",
-            "https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=600&h=600&fit=crop",
-          ],
-          description: "Black color, Medium size, Cotton material",
-          selectedOptions: [
-            { optionName: "Color", selectedValue: "Black" },
-            { optionName: "Size", selectedValue: "Medium" },
-            { optionName: "Material", selectedValue: "Cotton" },
-          ],
-        },
-        {
-          _id: "6858160cb37cd4aae6c9beb7",
-          sku: "TSHIRT-WHT-M-COTTON",
-          price: 25.99,
-          quantity: 60,
-          images: [
-            "https://images.unsplash.com/photo-1562157873-818bc0726f68?w=600&h=600&fit=crop",
-            "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=600&h=600&fit=crop",
-            "https://images.unsplash.com/photo-1583743814966-8936f37f5b6e?w=600&h=600&fit=crop",
-            "https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=600&h=600&fit=crop",
-          ],
-          description: "White color, Medium size, Cotton material",
-          selectedOptions: [
-            { optionName: "Color", selectedValue: "White" },
-            { optionName: "Size", selectedValue: "Medium" },
-            { optionName: "Material", selectedValue: "Cotton" },
-          ],
-        },
-        {
-          _id: "6858160cb37cd4aae6c9beb1",
-          sku: "TSHIRT-BLK-S-COTTON",
-          price: 25.99,
-          salePrice: 19.99,
-          quantity: 48,
-          images: [
-            "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=600&h=600&fit=crop",
-            "https://images.unsplash.com/photo-1562157873-818bc0726f68?w=600&h=600&fit=crop",
-            "https://images.unsplash.com/photo-1583743814966-8936f37f5b6e?w=600&h=600&fit=crop",
-            "https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=600&h=600&fit=crop",
-          ],
-          description: "Black color, Small size, Cotton material",
-          selectedOptions: [
-            { optionName: "Color", selectedValue: "Black" },
-            { optionName: "Size", selectedValue: "Small" },
-            { optionName: "Material", selectedValue: "Cotton" },
-          ],
-        },
-        {
-          _id: "6858160cb37cd4aae6c9beb8",
-          sku: "TSHIRT-RED-L-BLEND",
-          price: 29.99,
-          salePrice: 24.99,
-          quantity: 35,
-          images: [
-            "https://images.unsplash.com/photo-1583743814966-8936f37f5b6e?w=600&h=600&fit=crop",
-            "https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=600&h=600&fit=crop",
-            "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=600&h=600&fit=crop",
-            "https://images.unsplash.com/photo-1562157873-818bc0726f68?w=600&h=600&fit=crop",
-          ],
-          description: "Red color, Large size, Cotton Blend material",
-          selectedOptions: [
-            { optionName: "Color", selectedValue: "Red" },
-            { optionName: "Size", selectedValue: "Large" },
-            { optionName: "Material", selectedValue: "Cotton Blend" },
-            { optionName: "Style", selectedValue: "Regular Fit" },
-          ],
-        },
-        {
-          _id: "6858160cb37cd4aae6c9beb9",
-          sku: "TSHIRT-RED-L-BLEND-SLIM",
-          price: 29.99,
-          quantity: 22,
-          images: [
-            "https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=600&h=600&fit=crop",
-            "https://images.unsplash.com/photo-1583743814966-8936f37f5b6e?w=600&h=600&fit=crop",
-            "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=600&h=600&fit=crop",
-            "https://images.unsplash.com/photo-1562157873-818bc0726f68?w=600&h=600&fit=crop",
-          ],
-          description: "Red color, Large size, Cotton Blend material, Slim Fit",
-          selectedOptions: [
-            { optionName: "Color", selectedValue: "Red" },
-            { optionName: "Size", selectedValue: "Large" },
-            { optionName: "Material", selectedValue: "Cotton Blend" },
-            { optionName: "Style", selectedValue: "Slim Fit" },
-          ],
-        },
-      ],
-    },
-  };
+  const { id } = useParams();
+  const router = useRouter();
 
-  const { data: product } = productData;
-
-  const [selectedVariant, setSelectedVariant] = useState(product.variants[0]);
+  const [product, setProduct]: any = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [selectedVariant, setSelectedVariant]: any = useState(null);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
-  const [selectedOptions, setSelectedOptions] = useState(() => {
-    // Initialize with first variant's options
-    const initialOptions: any = {};
-    selectedVariant.selectedOptions.forEach((option: any) => {
-      initialOptions[option.optionName] = option.selectedValue;
-    });
-    return initialOptions;
-  });
   const [quantity, setQuantity] = useState(1);
 
-  // Get all unique option names dynamically
-  const getAllOptionNames = () => {
-    const optionNames = new Set();
-    product.variants.forEach((variant) => {
-      variant.selectedOptions.forEach((option) => {
-        optionNames.add(option.optionName);
-      });
-    });
-    return Array.from(optionNames);
+  useEffect(() => {
+    if (!id) return;
+    setLoading(true);
+    fetch(`${BASE_URL}/products/view/${id}`)
+      .then((res) => res.json())
+      .then((data) => {
+        const productData = data.data;
+        setProduct(productData);
+
+        // Set first variant as default
+        if (productData?.variants?.length > 0) {
+          setSelectedVariant(productData.variants[0]);
+        }
+
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, [id]);
+
+  // Handle variant selection
+  const handleVariantSelect = (variant: any) => {
+    setSelectedVariant(variant);
+    setSelectedImageIndex(0);
+    setQuantity(1);
   };
 
-  // Get unique values for a specific option
-  const getUniqueOptionValues = (optionName: any) => {
-    const values = new Set();
-    product.variants.forEach((variant) => {
-      const option = variant.selectedOptions.find(
-        (opt) => opt.optionName === optionName
-      );
-      if (option) {
-        values.add(option.selectedValue);
-      }
-    });
-    return Array.from(values);
-  };
-
-  // Check if an option value is available with current selections
-  const isOptionValueAvailable = (optionName: any, value: any) => {
-    const tempOptions: any = { ...selectedOptions, [optionName]: value };
-    return product.variants.some((variant) => {
-      return Object.keys(tempOptions).every((key) => {
-        const variantOption = variant.selectedOptions.find(
-          (opt) => opt.optionName === key
-        );
-        return (
-          variantOption && variantOption.selectedValue === tempOptions[key]
-        );
-      });
-    });
-  };
-
-  // Handle option selection
-  const handleOptionChange = (optionName: any, value: any) => {
-    const newSelectedOptions: any = { ...selectedOptions, [optionName]: value };
-    setSelectedOptions(newSelectedOptions);
-
-    // Find matching variant
-    const matchingVariant = product.variants.find((variant) => {
-      return Object.keys(newSelectedOptions).every((key) => {
-        const variantOption = variant.selectedOptions.find(
-          (opt) => opt.optionName === key
-        );
-        return (
-          variantOption &&
-          variantOption.selectedValue === newSelectedOptions[key]
-        );
-      });
-    });
-
-    if (matchingVariant) {
-      setSelectedVariant(matchingVariant);
-      setSelectedImageIndex(0);
-      setQuantity(1);
-    }
-  };
-
+  // Handle quantity change
   const handleQuantityChange = (change: any) => {
     const newQuantity = quantity + change;
     if (newQuantity >= 1 && newQuantity <= selectedVariant.quantity) {
@@ -212,7 +58,16 @@ const ProductDetailPage = () => {
     }
   };
 
-  const allOptionNames: any = getAllOptionNames();
+  // Get variant display text
+  const getVariantDisplayText = (variant: any) => {
+    return variant.selectedOptions
+      .map((option: any) => `${option.optionName}: ${option.selectedValue}`)
+      .join(", ");
+  };
+
+  if (loading) return <div className="p-4">Loading...</div>;
+  if (!product) return <div className="p-4">Product not found</div>;
+  if (!selectedVariant) return <div className="p-4">No variants available</div>;
 
   const features = [
     { icon: Truck, title: "Free Shipping", description: "On orders over $50" },
@@ -229,13 +84,13 @@ const ProductDetailPage = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+    <div className="min-h-screen bg-gray-50 text-black">
+      <div className="max-w-6xl mx-auto p-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Left - Images */}
           <div className="space-y-4">
             {/* Main Image */}
-            <div className="aspect-square bg-gray-50 rounded-2xl overflow-hidden">
+            <div className="aspect-square bg-white rounded-lg overflow-hidden border">
               <img
                 src={selectedVariant.images[selectedImageIndex]}
                 alt={product.name}
@@ -244,50 +99,40 @@ const ProductDetailPage = () => {
             </div>
 
             {/* Thumbnail Images */}
-            <div className="grid grid-cols-4 gap-4">
-              {selectedVariant.images.map((image, index) => (
-                <button
-                  key={index}
-                  onClick={() => setSelectedImageIndex(index)}
-                  className={`aspect-square bg-gray-50 rounded-lg overflow-hidden border-2 transition-colors ${
-                    selectedImageIndex === index
-                      ? "border-green-600"
-                      : "border-transparent hover:border-gray-300"
-                  }`}
-                >
-                  <img
-                    src={image}
-                    alt={`${product.name} view ${index + 1}`}
-                    className="w-full h-full object-cover"
-                  />
-                </button>
-              ))}
-            </div>
+            {selectedVariant.images.length > 1 && (
+              <div className="flex gap-2 overflow-x-auto">
+                {selectedVariant.images.map((image: any, index: any) => (
+                  <button
+                    key={index}
+                    onClick={() => setSelectedImageIndex(index)}
+                    className={`flex-shrink-0 w-16 h-16 bg-white rounded border-2 overflow-hidden ${
+                      selectedImageIndex === index
+                        ? "border-blue-500"
+                        : "border-gray-200"
+                    }`}
+                  >
+                    <img
+                      src={image}
+                      alt={`View ${index + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Right - Product Details */}
-          <div className="space-y-8">
+          <div className="space-y-6">
             {/* Product Info */}
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  {product.category && (
-                    <p className="text-sm text-gray-500 uppercase tracking-wide">
-                      {product.category}
-                    </p>
-                  )}
-                  <h1 className="text-3xl font-bold text-black mt-1">
-                    {product.name}
-                  </h1>
-                </div>
-                <button className="p-3 border border-gray-300 rounded-lg hover:border-black hover:bg-gray-50 transition-colors">
-                  <Heart className="w-6 h-6 text-gray-600" />
-                </button>
-              </div>
+            <div>
+              <h1 className="text-2xl font-semibold text-gray-900 mb-2">
+                {product.name}
+              </h1>
 
               {/* Rating */}
-              <div className="flex items-center space-x-2">
-                <div className="flex items-center">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="flex">
                   {[...Array(5)].map((_, i) => (
                     <Star
                       key={i}
@@ -301,118 +146,126 @@ const ProductDetailPage = () => {
               </div>
 
               {/* Price */}
-              <div className="flex items-center space-x-3">
-                <span className="text-3xl font-bold text-black">
-                  ${selectedVariant.salePrice || selectedVariant.price}
+              <div className="flex items-center gap-3 mb-4">
+                <span className="text-2xl font-bold text-gray-900">
+                  ₹{selectedVariant.salePrice || selectedVariant.price}
                 </span>
                 {selectedVariant.salePrice && (
-                  <span className="text-xl text-gray-500 line-through">
-                    ${selectedVariant.price}
-                  </span>
-                )}
-                {selectedVariant.salePrice && (
-                  <span className="px-2 py-1 bg-green-100 text-green-800 text-sm font-medium rounded">
-                    Save $
-                    {(
-                      selectedVariant.price - selectedVariant.salePrice
-                    ).toFixed(2)}
-                  </span>
+                  <>
+                    <span className="text-lg text-gray-500 line-through">
+                      ₹{selectedVariant.price}
+                    </span>
+                    <span className="text-sm bg-green-100 text-green-800 px-2 py-1 rounded">
+                      {Math.round(
+                        ((selectedVariant.price - selectedVariant.salePrice) /
+                          selectedVariant.price) *
+                          100
+                      )}
+                      % off
+                    </span>
+                  </>
                 )}
               </div>
 
               {/* Description */}
-              <p className="text-gray-600 leading-relaxed">
-                {product.description}
-              </p>
+              <p className="text-gray-600 mb-6">{product.description}</p>
             </div>
 
-            {/* Dynamic Options */}
-            <div className="space-y-6">
-              {allOptionNames.map((optionName: any) => {
-                const values = getUniqueOptionValues(optionName);
-                const currentValue = selectedOptions[optionName];
-
-                return (
-                  <div key={optionName}>
-                    <h3 className="text-sm font-medium text-black mb-3">
-                      {optionName}:{" "}
-                      {currentValue && (
-                        <span className="font-normal">{currentValue}</span>
-                      )}
-                    </h3>
-                    <div className="flex flex-wrap gap-3">
-                      {values.map((value: any) => {
-                        const isSelected = currentValue === value;
-                        const isAvailable = isOptionValueAvailable(
-                          optionName,
-                          value
-                        );
-
-                        return (
-                          <button
-                            key={value}
-                            onClick={() =>
-                              handleOptionChange(optionName, value)
-                            }
-                            disabled={!isAvailable}
-                            className={`px-4 py-2 border rounded-lg text-sm font-medium transition-colors ${
-                              isSelected
-                                ? "border-black bg-black text-white"
-                                : isAvailable
-                                ? "border-gray-300 text-gray-700 hover:border-black hover:text-black"
-                                : "border-gray-200 text-gray-400 cursor-not-allowed"
-                            }`}
-                          >
-                            {value}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                );
-              })}
-
-              {/* Quantity */}
+            {/* Variant Selection */}
+            {product.variants.length > 1 && (
               <div>
-                <h3 className="text-sm font-medium text-black mb-3">
-                  Quantity
+                <h3 className="text-sm font-medium text-gray-900 mb-3">
+                  Select Variant
                 </h3>
-                <div className="flex items-center space-x-4">
-                  <div className="flex items-center border border-gray-300 rounded-lg">
+                <div className="grid grid-cols-1 gap-2">
+                  {product.variants.map((variant: any) => (
                     <button
-                      onClick={() => handleQuantityChange(-1)}
-                      disabled={quantity <= 1}
-                      className="p-2 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      key={variant._id}
+                      onClick={() => handleVariantSelect(variant)}
+                      className={`p-3 text-left border rounded-lg transition-colors ${
+                        selectedVariant._id === variant._id
+                          ? "border-blue-500 bg-blue-50"
+                          : "border-gray-200 hover:border-gray-300"
+                      }`}
                     >
-                      <Minus className="w-4 h-4" />
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <div className="text-sm font-medium text-gray-900">
+                            {getVariantDisplayText(variant)}
+                          </div>
+                          <div className="text-xs text-gray-500 mt-1">
+                            SKU: {variant.sku}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-sm font-semibold text-gray-900">
+                            ₹{variant.salePrice || variant.price}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {variant.quantity > 0
+                              ? `${variant.quantity} left`
+                              : "Out of stock"}
+                          </div>
+                        </div>
+                      </div>
                     </button>
-                    <span className="px-4 py-2 text-black font-medium min-w-[3rem] text-center">
-                      {quantity}
-                    </span>
-                    <button
-                      onClick={() => handleQuantityChange(1)}
-                      disabled={quantity >= selectedVariant.quantity}
-                      className="p-2 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    >
-                      <Plus className="w-4 h-4" />
-                    </button>
-                  </div>
-                  <span className="text-sm text-gray-500">
-                    {selectedVariant.quantity} available
-                  </span>
+                  ))}
                 </div>
+              </div>
+            )}
+
+            {/* Current Variant Details */}
+            <div className="bg-gray-100 p-4 rounded-lg">
+              <h4 className="text-sm font-medium text-gray-900 mb-2">
+                Selected Variant
+              </h4>
+              <div className="text-sm text-gray-600 space-y-1">
+                <div>SKU: {selectedVariant.sku}</div>
+                <div>Stock: {selectedVariant.quantity} available</div>
+                <div>{getVariantDisplayText(selectedVariant)}</div>
               </div>
             </div>
 
-            {/* Buy Now Button */}
-            <div className="space-y-4">
+            {/* Quantity */}
+            <div>
+              <h3 className="text-sm font-medium text-gray-900 mb-3">
+                Quantity
+              </h3>
+              <div className="flex items-center gap-4">
+                <div className="flex items-center border rounded-lg">
+                  <button
+                    onClick={() => handleQuantityChange(-1)}
+                    disabled={quantity <= 1}
+                    className="p-2 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <Minus className="w-4 h-4" />
+                  </button>
+                  <span className="px-4 py-2 min-w-[3rem] text-center">
+                    {quantity}
+                  </span>
+                  <button
+                    onClick={() => handleQuantityChange(1)}
+                    disabled={quantity >= selectedVariant.quantity}
+                    className="p-2 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </button>
+                </div>
+                <span className="text-sm text-gray-500">
+                  {selectedVariant.quantity} available
+                </span>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="space-y-3">
               <button
                 disabled={selectedVariant.quantity === 0}
-                className="w-full px-8 py-4 bg-black text-white rounded-lg font-medium hover:bg-gray-800 transition-colors duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                className="w-full py-3 bg-black text-white font-medium rounded-lg hover:bg-gray-900 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
               >
                 {selectedVariant.quantity === 0
                   ? "Out of Stock"
-                  : `Buy Now - $${(
+                  : `Buy Now - ₹${(
                       (selectedVariant.salePrice || selectedVariant.price) *
                       quantity
                     ).toFixed(2)}`}
@@ -420,36 +273,24 @@ const ProductDetailPage = () => {
             </div>
 
             {/* Features */}
-            <div className="border-t border-gray-200 pt-8">
-              <div className="grid grid-cols-1 gap-4">
+            <div className="border-t pt-6">
+              <div className="space-y-3">
                 {features.map((feature, index) => {
                   const IconComponent = feature.icon;
                   return (
-                    <div key={index} className="flex items-center space-x-3">
+                    <div key={index} className="flex items-center gap-3">
                       <IconComponent className="w-5 h-5 text-green-600" />
                       <div>
-                        <span className="font-medium text-black">
+                        <span className="text-sm font-medium text-gray-900">
                           {feature.title}
                         </span>
-                        <span className="text-gray-600 text-sm ml-2">
+                        <span className="text-sm text-gray-600 ml-2">
                           {feature.description}
                         </span>
                       </div>
                     </div>
                   );
                 })}
-              </div>
-            </div>
-
-            {/* Product Details */}
-            <div className="border-t border-gray-200 pt-6 space-y-2">
-              <div className="text-sm text-gray-500">
-                <span className="font-medium text-black">SKU:</span>{" "}
-                {selectedVariant.sku}
-              </div>
-              <div className="text-sm text-gray-500">
-                <span className="font-medium text-black">Variant:</span>{" "}
-                {selectedVariant.description}
               </div>
             </div>
           </div>
