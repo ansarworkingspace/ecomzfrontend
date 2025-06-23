@@ -3,9 +3,11 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { Eye, EyeOff, Mail, Lock, ArrowRight } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
+  const router = useRouter();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -25,11 +27,40 @@ const LoginPage = () => {
     e.preventDefault();
     setIsLoading(true);
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BASE_URL_USER}/login`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify({
+            email: formData.email,
+            password: formData.password,
+          }),
+        }
+      );
 
-    console.log("Login attempt:", formData);
-    setIsLoading(false);
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Login failed");
+      }
+
+      console.log("Logged in successfully:", data);
+      if (data.data.user.role === "admin") {
+        router.push("/dashboard/products");
+      } else {
+        router.push("/products/list");
+      }
+    } catch (error: any) {
+      console.error("Login error:", error.message);
+      alert(error.message);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

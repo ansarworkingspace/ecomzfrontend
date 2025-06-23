@@ -3,10 +3,12 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { Eye, EyeOff, Mail, Lock, User, Phone, ArrowRight } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 const RegisterPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const router = useRouter();
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -87,7 +89,6 @@ const RegisterPage = () => {
 
     setIsLoading(true);
 
-    // Prepare data for backend
     const registrationData = {
       firstName: formData.firstName,
       lastName: formData.lastName,
@@ -96,11 +97,33 @@ const RegisterPage = () => {
       phone: formData.phone,
     };
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BASE_URL_USER}/customerRegister`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify(registrationData),
+        }
+      );
 
-    console.log("Registration attempt:", registrationData);
-    setIsLoading(false);
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result?.message || "Registration failed");
+      }
+
+      // Success: redirect to /products
+      router.push("/products");
+    } catch (error: any) {
+      console.error("Registration error:", error.message);
+      alert(error.message || "Something went wrong during registration.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

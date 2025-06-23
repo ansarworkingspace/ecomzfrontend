@@ -1,0 +1,1 @@
+export const BASE_URL_USER = 'http://localhost:3001/api/users'
