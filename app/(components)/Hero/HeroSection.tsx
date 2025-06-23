@@ -1,105 +1,98 @@
-"use client";
-
-import React from "react";
-import { Zap, ArrowRight, Shield, Truck, Heart } from "lucide-react";
+import { ArrowRight, Heart, Truck, Shield, RefreshCw } from "lucide-react";
 
 const HeroSection = () => {
   const features = [
     {
-      icon: Shield,
-      title: "Secure Shopping",
-      description: "256-bit SSL encryption for safe transactions",
-      color: "text-green-400",
-    },
-    {
       icon: Truck,
       title: "Free Shipping",
-      description: "Free delivery on orders over $99",
-      color: "text-blue-400",
+      description: "On orders over $100",
     },
     {
-      icon: Heart,
-      title: "24/7 Support",
-      description: "Round-the-clock customer assistance",
-      color: "text-pink-400",
+      icon: RefreshCw,
+      title: "Easy Returns",
+      description: "30-day return policy",
+    },
+    {
+      icon: Shield,
+      title: "Secure Payment",
+      description: "100% secure checkout",
     },
   ];
 
   return (
-    <section className="relative z-10 min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8">
-      {/* Animated Background */}
-      <div className="absolute inset-0 z-0">
-        <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-black to-blue-900/20"></div>
-        <div className="absolute top-0 left-0 w-full h-full overflow-hidden">
-          <div className="absolute top-20 left-10 w-72 h-72 bg-purple-500/10 rounded-full blur-3xl animate-pulse"></div>
-          <div
-            className="absolute bottom-20 right-10 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse"
-            style={{ animationDelay: "1s" }}
-          ></div>
-          <div
-            className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-pink-500/10 rounded-full blur-3xl animate-pulse"
-            style={{ animationDelay: "0.5s" }}
-          ></div>
-        </div>
-      </div>
+    <section className="pt-20 pb-16 bg-white">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center min-h-[80vh]">
+          {/* Left Content */}
+          <div className="space-y-8">
+            <div className="space-y-6">
+              <div className="inline-block px-4 py-2 bg-green-100 text-green-800 rounded-full text-sm font-medium">
+                New Collection Available
+              </div>
 
-      <div className="max-w-7xl mx-auto text-center relative z-10">
-        <div className="mb-8">
-          {/* Announcement Badge */}
-          <div className="inline-flex items-center px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full border border-white/20 mb-6 hover:bg-white/15 transition-all duration-300">
-            <Zap className="w-4 h-4 text-yellow-400 mr-2" />
-            <span className="text-sm font-medium">
-              Limited Time Offer - Up to 70% Off
-            </span>
+              <h1 className="text-5xl lg:text-6xl font-bold text-black leading-tight">
+                Ecomz
+                <span className="block text-green-600">Fashion</span>
+                <span className="block">for Modern Life</span>
+              </h1>
+
+              <p className="text-xl text-gray-600 leading-relaxed max-w-lg">
+                Discover our carefully curated collection of timeless pieces
+                that blend comfort, style, and sustainability.
+              </p>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-4">
+              <button className="px-8 py-4 bg-black text-white rounded-lg font-medium hover:bg-gray-800 transition-colors duration-200 flex items-center justify-center group">
+                Shop Collection
+                <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+              </button>
+              <button className="px-8 py-4 border-2 border-gray-300 text-gray-700 rounded-lg font-medium hover:border-black hover:text-black transition-colors duration-200">
+                View Lookbook
+              </button>
+            </div>
           </div>
 
-          {/* Main Headline */}
-          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
-            <span className="bg-gradient-to-r from-white via-purple-200 to-pink-200 bg-clip-text text-transparent">
-              Discover the Future
-            </span>
-            <br />
-            <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent">
-              of Shopping
-            </span>
-          </h1>
-
-          {/* Subtitle */}
-          <p className="text-xl text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed">
-            Experience premium quality products with cutting-edge technology.
-            From electronics to lifestyle essentials, we've curated the best for
-            you.
-          </p>
-
-          {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
-            <button className="group px-8 py-4 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full text-white font-semibold text-lg hover:shadow-2xl hover:shadow-purple-500/25 transform hover:scale-105 transition-all duration-300 flex items-center">
-              Shop Now
-              <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-            </button>
-            <button className="px-8 py-4 border-2 border-white/20 rounded-full text-white font-semibold text-lg hover:bg-white/10 hover:border-white/30 transition-all duration-300">
-              Explore Categories
-            </button>
+          {/* Right Image */}
+          <div className="relative">
+            <div className="aspect-square bg-gray-100 rounded-2xl overflow-hidden">
+              <img
+                src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=600&h=600&fit=crop&crop=center"
+                alt="Fashion model wearing minimalist clothing"
+                className="w-full h-full object-cover"
+              />
+            </div>
+            {/* Floating card */}
+            <div className="absolute -bottom-6 -left-6 bg-white p-6 rounded-xl shadow-lg border border-gray-200">
+              <div className="flex items-center space-x-4">
+                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                  <Heart className="w-6 h-6 text-green-600" />
+                </div>
+                <div>
+                  <p className="font-semibold text-black">
+                    10K+ Happy Customers
+                  </p>
+                  <p className="text-sm text-gray-600">5-star reviews</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Features Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+        {/* Features */}
+        <div className="mt-20 grid grid-cols-1 md:grid-cols-3 gap-8">
           {features.map((feature, index) => {
             const IconComponent = feature.icon;
             return (
               <div
                 key={feature.title}
-                className="flex flex-col items-center p-6 bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all duration-300 transform hover:scale-105"
-                style={{ animationDelay: `${index * 200}ms` }}
+                className="flex items-center space-x-4 p-6 bg-gray-50 rounded-xl"
               >
-                <IconComponent className={`w-8 h-8 ${feature.color} mb-4`} />
-                <h3 className="text-lg font-semibold mb-2 text-white">
-                  {feature.title}
-                </h3>
-                <p className="text-gray-400 text-center text-sm leading-relaxed">
-                  {feature.description}
-                </p>
+                <IconComponent className="w-8 h-8 text-green-600" />
+                <div>
+                  <h3 className="font-semibold text-black">{feature.title}</h3>
+                  <p className="text-gray-600 text-sm">{feature.description}</p>
+                </div>
               </div>
             );
           })}
