@@ -51,9 +51,9 @@ const LoginPage = () => {
 
       console.log("Logged in successfully:", data);
       if (data.data.user.role === "admin") {
-        router.push("/dashboard/products");
+        router.push("/dashboard/products/list");
       } else {
-        router.push("/products/list");
+        router.push("/products");
       }
     } catch (error: any) {
       console.error("Login error:", error.message);
