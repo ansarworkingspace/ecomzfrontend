@@ -2,11 +2,14 @@
 
 import React, { useState, useEffect } from "react";
 import { ShoppingBag, Menu, X } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 // Header Component
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrollY, setScrollY] = useState(0);
+
+  const router = useRouter();
 
   useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY);
@@ -15,11 +18,11 @@ const Header = () => {
   }, []);
 
   const navItems = [
-    { label: "Home", href: "#" },
-    { label: "Shop", href: "#products" },
-    { label: "Collections", href: "#collections" },
-    { label: "About", href: "#about" },
-    { label: "Contact", href: "#contact" },
+    { label: "Home", href: "/" },
+    { label: "Shop", href: "/products" },
+    { label: "Orders", href: "/orders" },
+    { label: "About", href: "/" },
+    { label: "Contact", href: "/" },
   ];
 
   return (
@@ -53,7 +56,10 @@ const Header = () => {
 
           {/* CTA and Mobile Menu */}
           <div className="flex items-center space-x-4">
-            <button className="hidden md:block px-6 py-2 bg-black text-white rounded-lg font-medium hover:bg-gray-800 transition-colors duration-200">
+            <button
+              onClick={() => router.push("/login")}
+              className="hidden md:block px-6 py-2 bg-black text-white rounded-lg font-medium hover:bg-gray-800 transition-colors duration-200"
+            >
               Sign In
             </button>
 
@@ -89,7 +95,7 @@ const Header = () => {
             ))}
             <button
               className="w-full mt-4 px-6 py-3 bg-black text-white rounded-lg font-medium hover:bg-gray-800 transition-colors duration-200"
-              onClick={() => setIsMenuOpen(false)}
+              onClick={() => router.push("/login")}
             >
               Sign In
             </button>
