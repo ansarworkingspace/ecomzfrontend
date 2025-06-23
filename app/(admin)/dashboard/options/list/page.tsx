@@ -1,52 +1,51 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 const OptionsListPage = () => {
-  const [options, setOptions]: any = useState([]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
+  const router = useRouter();
+  const [options, setOptions] = useState([]);
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    totalItems: 0,
+    itemsPerPage: 10,
+  });
+  const [loading, setLoading] = useState(false);
+
+  const fetchOptions = async (page = 1) => {
+    setLoading(true);
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BASE_URL_ADMIN}/options/list?page=${page}&limit=10`,
+        {
+          credentials: "include",
+        }
+      );
+      const result = await res.json();
+
+      if (result.success) {
+        setOptions(result.data.data);
+        setPagination(result.data.pagination);
+      } else {
+        console.error("Failed to fetch options");
+      }
+    } catch (err) {
+      console.error("API error:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    setTimeout(() => {
-      setOptions([
-        {
-          _id: "68580a9efc163c8434f601ea",
-          optionName: "Color",
-          values: ["Red", "Blue", "Green", "Black", "White"],
-          isActive: true,
-          createdAt: "2025-06-22T13:52:30.649Z",
-          updatedAt: "2025-06-22T13:52:30.649Z",
-        },
-        {
-          _id: "68580a9efc163c8434f601eb",
-          optionName: "Size",
-          values: ["S", "M", "L", "XL", "XXL"],
-          isActive: true,
-          createdAt: "2025-06-22T13:52:30.649Z",
-          updatedAt: "2025-06-22T13:52:30.649Z",
-        },
-        {
-          _id: "68580a9efc163c8434f601ec",
-          optionName: "Material",
-          values: ["Cotton", "Polyester", "Silk"],
-          isActive: false,
-          createdAt: "2025-06-22T13:52:30.649Z",
-          updatedAt: "2025-06-22T13:52:30.649Z",
-        },
-        // Add more sample data for pagination demo
-      ]);
-    }, 300);
-  }, []);
-
-  // Pagination logic
-  const totalPages = Math.ceil(options.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentOptions = options.slice(startIndex, endIndex);
+    fetchOptions(pagination.currentPage);
+  }, [pagination.currentPage]);
 
   const goToPage = (page: number) => {
-    setCurrentPage(page);
+    if (page >= 1 && page <= pagination.totalPages) {
+      setPagination((prev) => ({ ...prev, currentPage: page }));
+    }
   };
 
   return (
@@ -59,7 +58,10 @@ const OptionsListPage = () => {
             Manage product options and values
           </p>
         </div>
-        <button className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors font-medium">
+        <button
+          onClick={() => router.push("/dashboard/options/add")}
+          className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors font-medium"
+        >
           + Add Option
         </button>
       </div>
@@ -87,62 +89,75 @@ const OptionsListPage = () => {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
-            {currentOptions.map((option: any) => (
-              <tr key={option._id} className="hover:bg-gray-50">
-                <td className="px-6 py-4">
-                  <div className="font-medium text-black">
-                    {option.optionName}
-                  </div>
-                </td>
-                <td className="px-6 py-4">
-                  <div className="flex flex-wrap gap-1">
-                    {option.values
-                      .slice(0, 3)
-                      .map((value: string, index: number) => (
-                        <span
-                          key={index}
-                          className="inline-flex px-2 py-1 text-xs font-medium bg-gray-100 text-gray-700 rounded-full"
-                        >
-                          {value}
+            {!loading &&
+              options.map((option: any) => (
+                <tr key={option._id} className="hover:bg-gray-50">
+                  <td className="px-6 py-4">
+                    <div className="font-medium text-black">
+                      {option.optionName}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex flex-wrap gap-1">
+                      {option.values
+                        .slice(0, 3)
+                        .map((value: string, index: number) => (
+                          <span
+                            key={index}
+                            className="inline-flex px-2 py-1 text-xs font-medium bg-gray-100 text-gray-700 rounded-full"
+                          >
+                            {value}
+                          </span>
+                        ))}
+                      {option.values.length > 3 && (
+                        <span className="inline-flex px-2 py-1 text-xs font-medium bg-gray-100 text-gray-700 rounded-full">
+                          +{option.values.length - 3} more
                         </span>
-                      ))}
-                    {option.values.length > 3 && (
-                      <span className="inline-flex px-2 py-1 text-xs font-medium bg-gray-100 text-gray-700 rounded-full">
-                        +{option.values.length - 3} more
-                      </span>
-                    )}
-                  </div>
-                </td>
-                <td className="px-6 py-4">
-                  <span
-                    className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
-                      option.isActive
-                        ? "bg-green-100 text-green-800"
-                        : "bg-red-100 text-red-800"
-                    }`}
-                  >
-                    {option.isActive ? "Active" : "Inactive"}
-                  </span>
-                </td>
-                <td className="px-6 py-4 text-gray-600 text-sm">
-                  {new Date(option.createdAt).toLocaleDateString()}
-                </td>
-                <td className="px-6 py-4">
-                  <div className="flex space-x-3">
-                    <button className="text-gray-600 hover:text-black text-sm font-medium">
-                      View
-                    </button>
-                    <button className="text-green-600 hover:text-green-700 text-sm font-medium">
-                      Edit
-                    </button>
-                    <button className="text-red-600 hover:text-red-700 text-sm font-medium">
-                      Delete
-                    </button>
-                  </div>
+                      )}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <span
+                      className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
+                        option.isActive
+                          ? "bg-green-100 text-green-800"
+                          : "bg-red-100 text-red-800"
+                      }`}
+                    >
+                      {option.isActive ? "Active" : "Inactive"}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 text-gray-600 text-sm">
+                    {new Date(option.createdAt).toLocaleDateString()}
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex space-x-3">
+                      <button className="text-gray-600 hover:text-black text-sm font-medium">
+                        View
+                      </button>
+                      <button className="text-green-600 hover:text-green-700 text-sm font-medium">
+                        Edit
+                      </button>
+                      <button className="text-red-600 hover:text-red-700 text-sm font-medium">
+                        Delete
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+
+            {!loading && options.length === 0 && (
+              <tr>
+                <td
+                  colSpan={5}
+                  className="px-6 py-12 text-center text-gray-500"
+                >
+                  No options found.
                 </td>
               </tr>
-            ))}
-            {currentOptions.length === 0 && (
+            )}
+
+            {loading && (
               <tr>
                 <td
                   colSpan={5}
@@ -157,27 +172,32 @@ const OptionsListPage = () => {
       </div>
 
       {/* Pagination */}
-      {totalPages > 1 && (
+      {pagination.totalPages > 1 && (
         <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200">
           <div className="text-sm text-gray-600">
-            Showing {startIndex + 1} to {Math.min(endIndex, options.length)} of{" "}
-            {options.length} results
+            Showing {(pagination.currentPage - 1) * pagination.itemsPerPage + 1}{" "}
+            to{" "}
+            {Math.min(
+              pagination.currentPage * pagination.itemsPerPage,
+              pagination.totalItems
+            )}{" "}
+            of {pagination.totalItems} results
           </div>
           <div className="flex items-center space-x-2">
             <button
-              onClick={() => goToPage(currentPage - 1)}
-              disabled={currentPage === 1}
+              onClick={() => goToPage(pagination.currentPage - 1)}
+              disabled={pagination.currentPage === 1}
               className="px-3 py-1 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Previous
             </button>
 
-            {[...Array(totalPages)].map((_, i) => (
+            {[...Array(pagination.totalPages)].map((_, i) => (
               <button
                 key={i + 1}
                 onClick={() => goToPage(i + 1)}
                 className={`px-3 py-1 text-sm font-medium rounded-lg ${
-                  currentPage === i + 1
+                  pagination.currentPage === i + 1
                     ? "bg-green-600 text-white"
                     : "text-gray-600 bg-white border border-gray-300 hover:bg-gray-50"
                 }`}
@@ -187,8 +207,8 @@ const OptionsListPage = () => {
             ))}
 
             <button
-              onClick={() => goToPage(currentPage + 1)}
-              disabled={currentPage === totalPages}
+              onClick={() => goToPage(pagination.currentPage + 1)}
+              disabled={pagination.currentPage === pagination.totalPages}
               className="px-3 py-1 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Next

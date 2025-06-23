@@ -1,36 +1,64 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, ChangeEvent } from "react";
 import { Plus, X, Upload, Eye, EyeOff } from "lucide-react";
+import { useRouter } from "next/navigation";
+
+// Types
+interface Category {
+  _id: string;
+  name: string;
+  // ...other fields if needed
+}
+
+interface Option {
+  _id: string;
+  optionName: string;
+  values: string[];
+  // ...other fields if needed
+}
+
+interface SelectedOption {
+  optionId: string;
+  optionName: string;
+  selectedValue: string;
+}
+
+interface Variant {
+  sku: string;
+  price: number | string;
+  salePrice?: number | string;
+  cost?: number | string;
+  quantity: number | string;
+  lowStockThreshold?: number | string;
+  images: string[];
+  description: string;
+  dimensions: {
+    length: number | string;
+    width: number | string;
+    height: number | string;
+  };
+  selectedOptions: SelectedOption[];
+  isActive: boolean;
+}
+
+interface BasicProduct {
+  name: string;
+  description: string;
+  category: string;
+  isFeatured: boolean;
+  mainImage: string;
+}
 
 const ProductCreationPage = () => {
-  // Mock data for categories and options (normally from API)
-  const mockCategories = [
-    { id: "60f1b2b3c4d5e6f7a8b9c0d1", name: "T-Shirts" },
-    { id: "60f1b2b3c4d5e6f7a8b9c0d2", name: "Jeans" },
-    { id: "60f1b2b3c4d5e6f7a8b9c0d3", name: "Shoes" },
-  ];
-
-  const mockOptions = [
-    {
-      id: "60f1b2b3c4d5e6f7a8b9c0d2",
-      name: "Color",
-      values: ["Black", "White", "Red", "Blue", "Green"],
-    },
-    {
-      id: "60f1b2b3c4d5e6f7a8b9c0d3",
-      name: "Size",
-      values: ["XS", "Small", "Medium", "Large", "XL", "XXL"],
-    },
-    {
-      id: "60f1b2b3c4d5e6f7a8b9c0d4",
-      name: "Material",
-      values: ["Cotton", "Polyester", "Blend", "Wool"],
-    },
-  ];
+  // State for categories and options from API
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [options, setOptions] = useState<Option[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [submitLoading, setSubmitLoading] = useState(false);
 
   // Basic product state
-  const [basicProduct, setBasicProduct]: any = useState({
+  const [basicProduct, setBasicProduct] = useState<BasicProduct>({
     name: "",
     description: "",
     category: "",
@@ -38,20 +66,26 @@ const ProductCreationPage = () => {
     mainImage: "",
   });
 
+  // Main image file state
+  const [mainImageFile, setMainImageFile] = useState<File | null>(null);
+  const [mainImagePreview, setMainImagePreview] = useState<string>("");
+  const router = useRouter();
   // Variants state
-  const [variants, setVariants]: any = useState([]);
+  const [variants, setVariants] = useState<Variant[]>([]);
   const [showVariantForm, setShowVariantForm] = useState(false);
-  const [editingVariantIndex, setEditingVariantIndex] = useState(null);
+  const [editingVariantIndex, setEditingVariantIndex] = useState<number | null>(
+    null
+  );
 
   // Current variant being created/edited
-  const [currentVariant, setCurrentVariant] = useState({
+  const [currentVariant, setCurrentVariant] = useState<Variant>({
     sku: "",
     price: "",
     salePrice: "",
     cost: "",
     quantity: "",
     lowStockThreshold: "",
-    images: [""],
+    images: [],
     description: "",
     dimensions: {
       length: "",
@@ -62,20 +96,152 @@ const ProductCreationPage = () => {
     isActive: true,
   });
 
-  const [selectedOptionsForVariant, setSelectedOptionsForVariant]: any =
-    useState([]);
+  // Variant image files state
+  const [variantImageFiles, setVariantImageFiles] = useState<(File | null)[]>([
+    null,
+  ]);
+  const [variantImagePreviews, setVariantImagePreviews] = useState<string[]>([
+    "",
+  ]);
+
+  const [selectedOptionsForVariant, setSelectedOptionsForVariant] = useState<
+    SelectedOption[]
+  >([]);
+
+  // Fetch categories and options on component mount
+  useEffect(() => {
+    fetchCategoriesAndOptions();
+  }, []);
+
+  const fetchCategoriesAndOptions = async () => {
+    setLoading(true);
+    try {
+      // Fetch categories
+      const categoriesRes = await fetch(
+        `${process.env.NEXT_PUBLIC_BASE_URL_ADMIN}/category/list`,
+        {
+          method: "GET",
+          credentials: "include",
+        }
+      );
+      if (categoriesRes.ok) {
+        const categoriesData = await categoriesRes.json();
+        if (categoriesData.success && Array.isArray(categoriesData.data.data)) {
+          setCategories(categoriesData.data.data);
+        } else {
+          setCategories([]);
+        }
+      } else {
+        setCategories([]);
+      }
+      // Fetch options
+      const optionsRes = await fetch(
+        `${process.env.NEXT_PUBLIC_BASE_URL_ADMIN}/options/list`,
+        {
+          method: "GET",
+          credentials: "include",
+        }
+      );
+      if (optionsRes.ok) {
+        const optionsData = await optionsRes.json();
+        if (optionsData.success && Array.isArray(optionsData.data.data)) {
+          setOptions(optionsData.data.data);
+        } else {
+          setOptions([]);
+        }
+      } else {
+        setOptions([]);
+      }
+    } catch (error) {
+      setCategories([]);
+      setOptions([]);
+      console.error("Error fetching categories and options:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Handle main image file selection
+  const handleMainImageChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setMainImageFile(file);
+      const previewUrl = URL.createObjectURL(file);
+      setMainImagePreview(previewUrl);
+    }
+  };
+
+  // Handle variant image file selection
+  const handleVariantImageChange = (
+    index: number,
+    e: ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const newFiles = [...variantImageFiles];
+      const newPreviews = [...variantImagePreviews];
+      newFiles[index] = file;
+      newPreviews[index] = URL.createObjectURL(file);
+      setVariantImageFiles(newFiles);
+      setVariantImagePreviews(newPreviews);
+    }
+  };
+
+  const addVariantImage = () => {
+    setVariantImageFiles([...variantImageFiles, null]);
+    setVariantImagePreviews([...variantImagePreviews, ""]);
+  };
+
+  const removeVariantImage = (index: number) => {
+    if (variantImageFiles.length > 1) {
+      const newFiles = variantImageFiles.filter((_, i) => i !== index);
+      const newPreviews = variantImagePreviews.filter((_, i) => i !== index);
+      setVariantImageFiles(newFiles);
+      setVariantImagePreviews(newPreviews);
+    }
+  };
+
+  // Upload images helper function
+  const uploadImages = async (files: (File | null)[]): Promise<string[]> => {
+    const uploadedUrls: string[] = [];
+    for (const file of files) {
+      if (file) {
+        const imgForm = new FormData();
+        imgForm.append("files", file);
+        const imgRes = await fetch(
+          `${process.env.NEXT_PUBLIC_BASE_URL_USER}/images`,
+          {
+            method: "POST",
+            body: imgForm,
+            credentials: "include",
+          }
+        );
+        const imgData = await imgRes.json();
+        if (imgData.success && imgData.data?.urls?.[0]) {
+          uploadedUrls.push(imgData.data.urls[0]);
+        } else {
+          throw new Error("Image upload failed.");
+        }
+      }
+    }
+    return uploadedUrls;
+  };
 
   // Handle basic product changes
-  const handleBasicProductChange = (e: any) => {
-    const { name, value, type, checked } = e.target;
-    setBasicProduct((prev: any) => ({
+  const handleBasicProductChange = (
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
+    const { name, value, type, checked }: any = e.target;
+    setBasicProduct((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
     }));
   };
 
   // Handle variant field changes
-  const handleVariantChange = (e: any) => {
+  const handleVariantChange = (
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
     if (name.includes("dimensions.")) {
       const dimensionField = name.split(".")[1];
@@ -94,57 +260,37 @@ const ProductCreationPage = () => {
     }
   };
 
-  // Handle variant image changes
-  const handleVariantImageChange = (index: any, value: any) => {
-    const newImages = [...currentVariant.images];
-    newImages[index] = value;
-    setCurrentVariant((prev) => ({
-      ...prev,
-      images: newImages,
-    }));
-  };
-
-  const addVariantImage = () => {
-    setCurrentVariant((prev) => ({
-      ...prev,
-      images: [...prev.images, ""],
-    }));
-  };
-
-  const removeVariantImage = (index: any) => {
-    if (currentVariant.images.length > 1) {
-      const newImages = currentVariant.images.filter((_, i) => i !== index);
-      setCurrentVariant((prev) => ({
-        ...prev,
-        images: newImages,
-      }));
-    }
-  };
-
   // Handle option selection for variant
-  const addOptionToVariant: any = () => {
-    setSelectedOptionsForVariant((prev: any) => [
+  const addOptionToVariant = () => {
+    setSelectedOptionsForVariant((prev) => [
       ...prev,
-      { optionId: "", selectedValue: "" },
+      { optionId: "", optionName: "", selectedValue: "" },
     ]);
   };
 
-  const removeOptionFromVariant = (index: any) => {
-    setSelectedOptionsForVariant((prev: any) =>
-      prev.filter((_: any, i: any) => i !== index)
-    );
+  const removeOptionFromVariant = (index: number) => {
+    setSelectedOptionsForVariant((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const handleOptionChange = (index: any, field: any, value: any) => {
-    const newOptions: any = [...selectedOptionsForVariant];
-    newOptions[index] = { ...newOptions[index], [field]: value };
-
+  const handleOptionChange = (
+    index: number,
+    field: keyof SelectedOption,
+    value: string
+  ) => {
+    const newOptions = [...selectedOptionsForVariant];
     if (field === "optionId") {
-      const option = mockOptions.find((opt) => opt.id === value);
-      newOptions[index].optionName = option ? option.name : "";
-      newOptions[index].selectedValue = "";
+      const option = options.find((opt) => opt._id === value);
+      newOptions[index] = {
+        optionId: value,
+        optionName: option ? option.optionName : "",
+        selectedValue: "",
+      };
+    } else {
+      newOptions[index] = {
+        ...newOptions[index],
+        [field]: value,
+      };
     }
-
     setSelectedOptionsForVariant(newOptions);
   };
 
@@ -157,76 +303,160 @@ const ProductCreationPage = () => {
       cost: "",
       quantity: "",
       lowStockThreshold: "",
-      images: [""],
+      images: [],
       description: "",
       dimensions: { length: "", width: "", height: "" },
       selectedOptions: [],
       isActive: true,
     });
     setSelectedOptionsForVariant([]);
+    setVariantImageFiles([null]);
+    setVariantImagePreviews([""]);
     setEditingVariantIndex(null);
     setShowVariantForm(true);
   };
 
   // Edit existing variant
-  const editVariant = (index: any) => {
+  const editVariant = (index: number) => {
     const variant = variants[index];
     setCurrentVariant(variant);
     setSelectedOptionsForVariant(variant.selectedOptions || []);
+    setVariantImageFiles(new Array(variant.images?.length || 1).fill(null));
+    setVariantImagePreviews(variant.images || [""]);
     setEditingVariantIndex(index);
     setShowVariantForm(true);
   };
 
   // Save variant
-  const saveVariant = () => {
-    const variantToSave = {
-      ...currentVariant,
-      selectedOptions: selectedOptionsForVariant.filter(
-        (opt: any) => opt.optionId && opt.selectedValue
-      ),
-    };
-
-    if (editingVariantIndex !== null) {
-      // Update existing variant
-      const newVariants = [...variants];
-      newVariants[editingVariantIndex] = variantToSave;
-      setVariants(newVariants);
-    } else {
-      // Add new variant
-      setVariants((prev: any) => [...prev, variantToSave]);
+  const saveVariant = async () => {
+    try {
+      // Upload variant images
+      const uploadedImageUrls = await uploadImages(variantImageFiles);
+      const variantToSave: Variant = {
+        ...currentVariant,
+        images: uploadedImageUrls,
+        selectedOptions: selectedOptionsForVariant.filter(
+          (opt) => opt.optionId && opt.selectedValue
+        ),
+        price: Number(currentVariant.price),
+        salePrice: currentVariant.salePrice
+          ? Number(currentVariant.salePrice)
+          : undefined,
+        cost: currentVariant.cost ? Number(currentVariant.cost) : undefined,
+        quantity: Number(currentVariant.quantity),
+        lowStockThreshold: currentVariant.lowStockThreshold
+          ? Number(currentVariant.lowStockThreshold)
+          : undefined,
+        dimensions: {
+          length: Number(currentVariant.dimensions.length),
+          width: Number(currentVariant.dimensions.width),
+          height: Number(currentVariant.dimensions.height),
+        },
+      };
+      if (editingVariantIndex !== null) {
+        // Update existing variant
+        const newVariants = [...variants];
+        newVariants[editingVariantIndex] = variantToSave;
+        setVariants(newVariants);
+      } else {
+        // Add new variant
+        setVariants((prev) => [...prev, variantToSave]);
+      }
+      setShowVariantForm(false);
+      setEditingVariantIndex(null);
+    } catch (error) {
+      console.error("Error saving variant:", error);
+      alert("Error uploading variant images. Please try again.");
     }
-
-    setShowVariantForm(false);
-    setEditingVariantIndex(null);
   };
 
   // Remove variant
-  const removeVariant = (index: any) => {
-    setVariants((prev: any) => prev.filter((_: any, i: any) => i !== index));
+  const removeVariant = (index: number) => {
+    setVariants((prev) => prev.filter((_, i) => i !== index));
   };
 
   // Cancel variant form
   const cancelVariantForm = () => {
     setShowVariantForm(false);
     setEditingVariantIndex(null);
+    setVariantImageFiles([null]);
+    setVariantImagePreviews([""]);
   };
 
   // Submit complete product
-  const handleSubmitProduct = () => {
-    const productData = {
-      ...basicProduct,
-      variants: variants,
-    };
-
-    console.log("Product Data:", JSON.stringify(productData, null, 2));
-    alert("Product created successfully! Check console for data.");
+  const handleSubmitProduct = async () => {
+    setSubmitLoading(true);
+    try {
+      let mainImageUrl = "";
+      // Step 1: Upload main image if selected
+      if (mainImageFile) {
+        const uploadedUrls = await uploadImages([mainImageFile]);
+        mainImageUrl = uploadedUrls[0];
+      }
+      // Step 2: Prepare variants (all images already uploaded)
+      const productData = {
+        ...basicProduct,
+        mainImage: mainImageUrl,
+        variants: variants.map((variant) => ({
+          ...variant,
+          price: Number(variant.price),
+          salePrice: variant.salePrice ? Number(variant.salePrice) : undefined,
+          cost: variant.cost ? Number(variant.cost) : undefined,
+          quantity: Number(variant.quantity),
+          lowStockThreshold: variant.lowStockThreshold
+            ? Number(variant.lowStockThreshold)
+            : undefined,
+          dimensions: {
+            length: Number(variant.dimensions.length),
+            width: Number(variant.dimensions.width),
+            height: Number(variant.dimensions.height),
+          },
+        })),
+      };
+      // Step 3: Submit product
+      const productRes = await fetch(
+        `${process.env.NEXT_PUBLIC_BASE_URL_ADMIN}/products/add`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify(productData),
+        }
+      );
+      const productResponseData = await productRes.json();
+      if (productResponseData.success) {
+        alert("Product created successfully!");
+        router.push("/dashboard/products/list");
+        console.log("Product Data:", JSON.stringify(productData, null, 2));
+        // Reset form or redirect as needed
+      } else {
+        throw new Error("Product creation failed");
+      }
+    } catch (error) {
+      console.error("Error creating product:", error);
+      alert("Error creating product. Please try again.");
+    } finally {
+      setSubmitLoading(false);
+    }
   };
 
-  const getSelectedOptionDisplay = (options: any) => {
+  const getSelectedOptionDisplay = (options: SelectedOption[]) => {
     return options
-      .map((opt: any) => `${opt.optionName}: ${opt.selectedValue}`)
+      .map((opt) => `${opt.optionName}: ${opt.selectedValue}`)
       .join(", ");
   };
+
+  if (loading) {
+    return (
+      <div className="max-w-6xl mx-auto p-6 bg-white text-black">
+        <div className="flex justify-center items-center h-64">
+          <div className="text-lg">Loading...</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-6xl mx-auto p-6 bg-white text-black">
@@ -271,8 +501,8 @@ const ProductCreationPage = () => {
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="">Select category</option>
-              {mockCategories.map((cat) => (
-                <option key={cat.id} value={cat.id}>
+              {categories.map((cat) => (
+                <option key={cat._id} value={cat._id}>
                   {cat.name}
                 </option>
               ))}
@@ -295,16 +525,25 @@ const ProductCreationPage = () => {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Main Image URL
+              Main Image *
             </label>
-            <input
-              type="url"
-              name="mainImage"
-              value={basicProduct.mainImage}
-              onChange={handleBasicProductChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="https://example.com/image.jpg"
-            />
+            <div className="space-y-3">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleMainImageChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              {mainImagePreview && (
+                <div className="relative">
+                  <img
+                    src={mainImagePreview}
+                    alt="Main image preview"
+                    className="w-32 h-32 object-cover rounded-lg border"
+                  />
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="flex items-center">
@@ -341,7 +580,7 @@ const ProductCreationPage = () => {
 
         {/* Existing Variants List */}
         <div className="space-y-4">
-          {variants.map((variant: any, index: any) => (
+          {variants.map((variant, index) => (
             <div
               key={index}
               className="border border-gray-200 rounded-lg p-4 bg-gray-50"
@@ -579,25 +818,31 @@ const ProductCreationPage = () => {
                   Variant Images
                 </label>
                 <div className="space-y-3">
-                  {currentVariant.images.map((image, index) => (
-                    <div key={index} className="flex items-center space-x-3">
-                      <input
-                        type="url"
-                        value={image}
-                        onChange={(e) =>
-                          handleVariantImageChange(index, e.target.value)
-                        }
-                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="https://example.com/image.jpg"
-                      />
-                      {currentVariant.images.length > 1 && (
-                        <button
-                          type="button"
-                          onClick={() => removeVariantImage(index)}
-                          className="px-3 py-2 text-red-600 hover:text-red-700 text-sm font-medium"
-                        >
-                          Remove
-                        </button>
+                  {variantImageFiles.map((file, index) => (
+                    <div key={index} className="space-y-2">
+                      <div className="flex items-center space-x-3">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handleVariantImageChange(index, e)}
+                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                        {variantImageFiles.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => removeVariantImage(index)}
+                            className="px-3 py-2 text-red-600 hover:text-red-700 text-sm font-medium"
+                          >
+                            Remove
+                          </button>
+                        )}
+                      </div>
+                      {variantImagePreviews[index] && (
+                        <img
+                          src={variantImagePreviews[index]}
+                          alt={`Variant image ${index + 1} preview`}
+                          className="w-20 h-20 object-cover rounded border"
+                        />
                       )}
                     </div>
                   ))}
@@ -628,64 +873,66 @@ const ProductCreationPage = () => {
                 </div>
 
                 <div className="space-y-3">
-                  {selectedOptionsForVariant.map((option: any, index: any) => (
-                    <div
-                      key={index}
-                      className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg"
-                    >
-                      <div className="flex-1">
-                        <select
-                          value={option.optionId}
-                          onChange={(e) =>
-                            handleOptionChange(
-                              index,
-                              "optionId",
-                              e.target.value
-                            )
-                          }
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >
-                          <option value="">Select Option</option>
-                          {mockOptions.map((opt) => (
-                            <option key={opt.id} value={opt.id}>
-                              {opt.name}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      <div className="flex-1">
-                        <select
-                          value={option.selectedValue}
-                          onChange={(e) =>
-                            handleOptionChange(
-                              index,
-                              "selectedValue",
-                              e.target.value
-                            )
-                          }
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          disabled={!option.optionId}
-                        >
-                          <option value="">Select Value</option>
-                          {option.optionId &&
-                            mockOptions
-                              .find((opt) => opt.id === option.optionId)
-                              ?.values.map((value) => (
-                                <option key={value} value={value}>
-                                  {value}
-                                </option>
-                              ))}
-                        </select>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => removeOptionFromVariant(index)}
-                        className="text-red-600 hover:text-red-700 p-1"
+                  {selectedOptionsForVariant.map(
+                    (option: SelectedOption, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg"
                       >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ))}
+                        <div className="flex-1">
+                          <select
+                            value={option.optionId}
+                            onChange={(e) =>
+                              handleOptionChange(
+                                index,
+                                "optionId",
+                                e.target.value
+                              )
+                            }
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          >
+                            <option value="">Select Option</option>
+                            {options.map((opt) => (
+                              <option key={opt._id} value={opt._id}>
+                                {opt.optionName}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div className="flex-1">
+                          <select
+                            value={option.selectedValue}
+                            onChange={(e) =>
+                              handleOptionChange(
+                                index,
+                                "selectedValue",
+                                e.target.value
+                              )
+                            }
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            disabled={!option.optionId}
+                          >
+                            <option value="">Select Value</option>
+                            {option.optionId &&
+                              options
+                                .find((opt) => opt._id === option.optionId)
+                                ?.values.map((value) => (
+                                  <option key={value} value={value}>
+                                    {value}
+                                  </option>
+                                ))}
+                          </select>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => removeOptionFromVariant(index)}
+                          className="text-red-600 hover:text-red-700 p-1"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    )
+                  )}
                 </div>
               </div>
             </div>

@@ -50,22 +50,43 @@ const AddOptionPage = () => {
     e.preventDefault();
     setLoading(true);
 
-    // Filter out empty values
     const filteredValues = formData.values.filter(
       (value) => value.trim() !== ""
     );
 
     const submitData = {
-      ...formData,
+      optionName: formData.optionName,
       values: filteredValues,
+      isActive: formData.isActive,
     };
 
-    // Simulate API call
-    setTimeout(() => {
-      console.log("Option created:", submitData);
-      setLoading(false);
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BASE_URL_ADMIN}/options/add`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify(submitData),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to create option");
+      }
+
+      const result = await response.json();
+      console.log("Option created:", result);
+
       router.push("/dashboard/options/list");
-    }, 1000);
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      alert("Something went wrong while creating the option.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const isFormValid =

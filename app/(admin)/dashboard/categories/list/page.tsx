@@ -1,55 +1,52 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 const CategoriesListPage = () => {
   const [categories, setCategories]: any = useState([]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
+  const [loading, setLoading] = useState(false);
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    totalItems: 0,
+    itemsPerPage: 10,
+    hasNextPage: false,
+    hasPrevPage: false,
+  });
+
+  const router = useRouter();
+
+  const fetchCategories = async (page = 1) => {
+    setLoading(true);
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BASE_URL_ADMIN}/category/list?page=${page}&limit=10`,
+        {
+          credentials: "include",
+        }
+      );
+      const result = await res.json();
+
+      if (result.success) {
+        setCategories(result.data.data);
+        setPagination(result.data.pagination);
+      }
+    } catch (err) {
+      console.error("Failed to fetch categories", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    setTimeout(() => {
-      setCategories([
-        {
-          _id: "685805e92f5c1387029607a4",
-          name: "Womens Clothing",
-          description: "All Womens items",
-          image: "https://example.com/electronics.jpg",
-          isActive: true,
-          createdAt: "2025-06-22T13:32:25.174Z",
-          updatedAt: "2025-06-22T13:32:25.174Z",
-        },
-        {
-          _id: "685805e92f5c1387029607a5",
-          name: "Mens Clothing",
-          description: "All Mens items",
-          image: "https://example.com/electronics.jpg",
-          isActive: true,
-          createdAt: "2025-06-22T13:32:25.174Z",
-          updatedAt: "2025-06-22T13:32:25.174Z",
-        },
-        {
-          _id: "685805e92f5c1387029607a6",
-          name: "Electronics",
-          description: "All Electronic items",
-          image: "https://example.com/electronics.jpg",
-          isActive: false,
-          createdAt: "2025-06-22T13:32:25.174Z",
-          updatedAt: "2025-06-22T13:32:25.174Z",
-        },
-        // Add more sample data for pagination demo
-      ]);
-    }, 300);
-  }, []);
-
-  // Pagination logic
-  const totalPages = Math.ceil(categories.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentCategories = categories.slice(startIndex, endIndex);
+    fetchCategories(pagination.currentPage);
+  }, [pagination.currentPage]);
 
   const goToPage = (page: number) => {
-    setCurrentPage(page);
+    if (page >= 1 && page <= pagination.totalPages) {
+      setPagination((prev) => ({ ...prev, currentPage: page }));
+    }
   };
 
   return (
@@ -62,7 +59,10 @@ const CategoriesListPage = () => {
             Manage product categories
           </p>
         </div>
-        <button className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors font-medium">
+        <button
+          onClick={() => router.push("/dashboard/categories/add")}
+          className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors font-medium"
+        >
           + Add Category
         </button>
       </div>
@@ -93,49 +93,7 @@ const CategoriesListPage = () => {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
-            {currentCategories.map((cat: any) => (
-              <tr key={cat._id} className="hover:bg-gray-50">
-                <td className="px-6 py-4">
-                  <img
-                    src={cat.image}
-                    alt={cat.name}
-                    className="w-10 h-10 object-cover rounded-lg"
-                  />
-                </td>
-                <td className="px-6 py-4">
-                  <div className="font-medium text-black">{cat.name}</div>
-                </td>
-                <td className="px-6 py-4 text-gray-600">{cat.description}</td>
-                <td className="px-6 py-4">
-                  <span
-                    className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
-                      cat.isActive
-                        ? "bg-green-100 text-green-800"
-                        : "bg-red-100 text-red-800"
-                    }`}
-                  >
-                    {cat.isActive ? "Active" : "Inactive"}
-                  </span>
-                </td>
-                <td className="px-6 py-4 text-gray-600 text-sm">
-                  {new Date(cat.createdAt).toLocaleDateString()}
-                </td>
-                <td className="px-6 py-4">
-                  <div className="flex space-x-3">
-                    <button className="text-gray-600 hover:text-black text-sm font-medium">
-                      View
-                    </button>
-                    <button className="text-green-600 hover:text-green-700 text-sm font-medium">
-                      Edit
-                    </button>
-                    <button className="text-red-600 hover:text-red-700 text-sm font-medium">
-                      Delete
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-            {currentCategories.length === 0 && (
+            {loading ? (
               <tr>
                 <td
                   colSpan={6}
@@ -144,33 +102,90 @@ const CategoriesListPage = () => {
                   Loading categories...
                 </td>
               </tr>
+            ) : categories.length === 0 ? (
+              <tr>
+                <td
+                  colSpan={6}
+                  className="px-6 py-12 text-center text-gray-500"
+                >
+                  No categories found.
+                </td>
+              </tr>
+            ) : (
+              categories.map((cat: any) => (
+                <tr key={cat._id} className="hover:bg-gray-50">
+                  <td className="px-6 py-4">
+                    <img
+                      src={cat.image}
+                      alt={cat.name}
+                      className="w-10 h-10 object-cover rounded-lg"
+                    />
+                  </td>
+                  <td className="px-6 py-4 font-medium text-black">
+                    {cat.name}
+                  </td>
+                  <td className="px-6 py-4 text-gray-600">{cat.description}</td>
+                  <td className="px-6 py-4">
+                    <span
+                      className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
+                        cat.isActive
+                          ? "bg-green-100 text-green-800"
+                          : "bg-red-100 text-red-800"
+                      }`}
+                    >
+                      {cat.isActive ? "Active" : "Inactive"}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-600">
+                    {new Date(cat.createdAt).toLocaleDateString()}
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex space-x-3">
+                      <button className="text-gray-600 hover:text-black text-sm font-medium">
+                        View
+                      </button>
+                      <button className="text-green-600 hover:text-green-700 text-sm font-medium">
+                        Edit
+                      </button>
+                      <button className="text-red-600 hover:text-red-700 text-sm font-medium">
+                        Delete
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))
             )}
           </tbody>
         </table>
       </div>
 
       {/* Pagination */}
-      {totalPages > 1 && (
+      {pagination.totalPages > 1 && (
         <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200">
           <div className="text-sm text-gray-600">
-            Showing {startIndex + 1} to {Math.min(endIndex, categories.length)}{" "}
-            of {categories.length} results
+            Showing {(pagination.currentPage - 1) * pagination.itemsPerPage + 1}{" "}
+            to{" "}
+            {Math.min(
+              pagination.currentPage * pagination.itemsPerPage,
+              pagination.totalItems
+            )}{" "}
+            of {pagination.totalItems} results
           </div>
           <div className="flex items-center space-x-2">
             <button
-              onClick={() => goToPage(currentPage - 1)}
-              disabled={currentPage === 1}
-              className="px-3 py-1 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={() => goToPage(pagination.currentPage - 1)}
+              disabled={!pagination.hasPrevPage}
+              className="px-3 py-1 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
             >
               Previous
             </button>
 
-            {[...Array(totalPages)].map((_, i) => (
+            {[...Array(pagination.totalPages)].map((_, i) => (
               <button
-                key={i + 1}
+                key={i}
                 onClick={() => goToPage(i + 1)}
                 className={`px-3 py-1 text-sm font-medium rounded-lg ${
-                  currentPage === i + 1
+                  pagination.currentPage === i + 1
                     ? "bg-green-600 text-white"
                     : "text-gray-600 bg-white border border-gray-300 hover:bg-gray-50"
                 }`}
@@ -180,9 +195,9 @@ const CategoriesListPage = () => {
             ))}
 
             <button
-              onClick={() => goToPage(currentPage + 1)}
-              disabled={currentPage === totalPages}
-              className="px-3 py-1 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={() => goToPage(pagination.currentPage + 1)}
+              disabled={!pagination.hasNextPage}
+              className="px-3 py-1 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
             >
               Next
             </button>
