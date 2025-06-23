@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Poppins } from "next/font/google";
 import "./globals.css";
+import Header from "./(components)/Header/HeaderSection";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -81,6 +82,7 @@ export default function RootLayout({
       <body
         className={`${poppins.className} antialiased bg-black text-white min-h-screen`}
       >
+        <Header />
         <div className="relative">{children}</div>
       </body>
     </html>
