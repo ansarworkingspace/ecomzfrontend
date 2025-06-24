@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { Eye, EyeOff, Mail, Lock, User, Phone, ArrowRight } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { setCookie } from "@/constant";
 
 const RegisterPage = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -115,7 +116,7 @@ const RegisterPage = () => {
       if (!response.ok) {
         throw new Error(result?.message || "Registration failed");
       }
-
+      setCookie("authToken", result.data.token, 7);
       // Success: redirect to /products
       router.push("/products");
     } catch (error: any) {
