@@ -1,11 +1,14 @@
-import Header from "@/app/(components)/Header/HeaderSection";
+import BackNavigation from "@/app/(components)/BackToHome/BackToHome";
+import Footer from "@/app/(components)/Footer/FooterSection";
 import ProductsList from "@/app/(components)/ProductList/ProductList";
 import React from "react";
 
 const page = () => {
   return (
     <>
-      <ProductsList />;
+      <BackNavigation />
+      <ProductsList />
+      <Footer />
     </>
   );
 };

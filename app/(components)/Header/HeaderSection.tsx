@@ -1,5 +1,4 @@
 "use client";
-
 import React, { useState, useEffect } from "react";
 import { ShoppingBag, Menu, X } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -8,14 +7,67 @@ import { useRouter } from "next/navigation";
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrollY, setScrollY] = useState(0);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const router = useRouter();
+
+  // Check authentication status
+  useEffect(() => {
+    const checkAuth = () => {
+      const authToken = document.cookie
+        .split("; ")
+        .find((row) => row.startsWith("authToken="));
+
+      setIsLoggedIn(!!authToken);
+      setIsLoading(false);
+    };
+
+    checkAuth();
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  // Logout function
+  const handleLogout = async () => {
+    try {
+      setIsLoading(true);
+
+      // Call logout API
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BASE_URL_USER}/logout`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include", // Include cookies
+        }
+      );
+
+      if (response.ok) {
+        // Clear auth token from cookies
+        document.cookie =
+          "authToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+
+        // Update state
+        setIsLoggedIn(false);
+
+        // Redirect to home or login page
+        router.push("/");
+      } else {
+        console.error("Logout failed");
+      }
+    } catch (error) {
+      console.error("Error during logout:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const navItems = [
     { label: "Home", href: "/" },
@@ -27,7 +79,7 @@ const Header = () => {
 
   return (
     <header
-      className={` w-full z-50 transition-all duration-300 ${
+      className={`w-full z-50 transition-all duration-300 ${
         scrollY > 50 ? "bg-white/95 backdrop-blur-lg shadow-sm" : "bg-white"
       }`}
     >
@@ -56,12 +108,17 @@ const Header = () => {
 
           {/* CTA and Mobile Menu */}
           <div className="flex items-center space-x-4">
-            <button
-              onClick={() => router.push("/login")}
-              className="hidden md:block px-6 py-2 bg-black text-white rounded-lg font-medium hover:bg-gray-800 transition-colors duration-200"
-            >
-              Sign In
-            </button>
+            {!isLoading && (
+              <button
+                onClick={
+                  isLoggedIn ? handleLogout : () => router.push("/login")
+                }
+                disabled={isLoading}
+                className="hidden md:block px-6 py-2 bg-black text-white rounded-lg font-medium hover:bg-gray-800 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isLoggedIn ? "Logout" : "Sign In"}
+              </button>
+            )}
 
             {/* Mobile Menu Button */}
             <button
@@ -93,12 +150,17 @@ const Header = () => {
                 {item.label}
               </a>
             ))}
-            <button
-              className="w-full mt-4 px-6 py-3 bg-black text-white rounded-lg font-medium hover:bg-gray-800 transition-colors duration-200"
-              onClick={() => router.push("/login")}
-            >
-              Sign In
-            </button>
+            {!isLoading && (
+              <button
+                className="w-full mt-4 px-6 py-3 bg-black text-white rounded-lg font-medium hover:bg-gray-800 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                onClick={
+                  isLoggedIn ? handleLogout : () => router.push("/login")
+                }
+                disabled={isLoading}
+              >
+                {isLoggedIn ? "Logout" : "Sign In"}
+              </button>
+            )}
           </div>
         </div>
       )}
