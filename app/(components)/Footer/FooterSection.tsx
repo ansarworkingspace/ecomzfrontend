@@ -34,7 +34,7 @@ const Footer = () => {
               <div className="w-10 h-10 bg-black rounded-lg flex items-center justify-center">
                 <ShoppingBag className="w-6 h-6 text-white" />
               </div>
-              <span className="text-2xl font-bold text-black">MINIMAL</span>
+              <span className="text-2xl font-bold text-black">Ecomz</span>
             </div>
             <p className="text-gray-600 mb-6 max-w-md leading-relaxed">
               Creating timeless, sustainable fashion that fits seamlessly into
@@ -97,7 +97,7 @@ const Footer = () => {
         {/* Bottom Section */}
         <div className="border-t border-gray-200 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
           <p className="text-gray-600 mb-4 md:mb-0">
-            © {new Date().getFullYear()} MINIMAL. All rights reserved.
+            © {new Date().getFullYear()} Ecomz. All rights reserved.
           </p>
           <div className="flex flex-wrap justify-center md:justify-end gap-6">
             {legalLinks.map((link) => (

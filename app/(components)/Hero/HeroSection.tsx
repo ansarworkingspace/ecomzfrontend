@@ -1,6 +1,10 @@
+"use client";
+
 import { ArrowRight, Heart, Truck, Shield, RefreshCw } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 const HeroSection = () => {
+  const router = useRouter();
   const features = [
     {
       icon: Truck,
@@ -43,7 +47,10 @@ const HeroSection = () => {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4">
-              <button className="px-8 py-4 bg-black text-white rounded-lg font-medium hover:bg-gray-800 transition-colors duration-200 flex items-center justify-center group">
+              <button
+                onClick={() => router.push("/products")}
+                className="px-8 py-4 bg-black text-white rounded-lg font-medium hover:bg-gray-800 transition-colors duration-200 flex items-center justify-center group"
+              >
                 Shop Collection
                 <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
               </button>

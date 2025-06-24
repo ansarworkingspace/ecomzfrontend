@@ -71,7 +71,11 @@ export default function RootLayout({
     <html lang="en" className={`${inter.variable} ${poppins.variable}`}>
       <head>
         <link rel="icon" href="/favicon.ico" sizes="any" />
-        <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+        <link
+          rel="icon"
+          href="/asset/images/logoforecomz.png"
+          type="image/png"
+        />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <meta name="theme-color" content="#000000" />
         <meta
@@ -82,7 +86,6 @@ export default function RootLayout({
       <body
         className={`${poppins.className} antialiased bg-black text-white min-h-screen`}
       >
-     
         <div className="relative">{children}</div>
       </body>
     </html>
