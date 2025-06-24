@@ -56,6 +56,7 @@ const ProductCreationPage = () => {
   const [options, setOptions] = useState<Option[]>([]);
   const [loading, setLoading] = useState(false);
   const [submitLoading, setSubmitLoading] = useState(false);
+  const [variantLoading, setVariantLoading] = useState(false);
 
   // Basic product state
   const [basicProduct, setBasicProduct] = useState<BasicProduct>({
@@ -330,6 +331,7 @@ const ProductCreationPage = () => {
   // Save variant
   const saveVariant = async () => {
     try {
+      setVariantLoading(true);
       // Upload variant images
       const uploadedImageUrls = await uploadImages(variantImageFiles);
       const variantToSave: Variant = {
@@ -367,6 +369,8 @@ const ProductCreationPage = () => {
     } catch (error) {
       console.error("Error saving variant:", error);
       alert("Error uploading variant images. Please try again.");
+    } finally {
+      setVariantLoading(false);
     }
   };
 
@@ -941,6 +945,7 @@ const ProductCreationPage = () => {
             <div className="flex items-center justify-end space-x-4 p-6 border-t border-gray-200">
               <button
                 type="button"
+                disabled={variantLoading}
                 onClick={cancelVariantForm}
                 className="px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
               >
@@ -949,11 +954,19 @@ const ProductCreationPage = () => {
               <button
                 type="button"
                 onClick={saveVariant}
+                disabled={variantLoading}
                 className="px-6 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
               >
-                {editingVariantIndex !== null
-                  ? "Update Variant"
-                  : "Add Variant"}
+                {variantLoading && (
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                )}
+                <span>
+                  {variantLoading
+                    ? "Saving..."
+                    : editingVariantIndex !== null
+                    ? "Update Variant"
+                    : "Add Variant"}
+                </span>
               </button>
             </div>
           </div>
@@ -963,10 +976,16 @@ const ProductCreationPage = () => {
       {/* Submit Button */}
       <div className="flex justify-end">
         <button
+          disabled={submitLoading}
           onClick={handleSubmitProduct}
           className="px-8 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium transition-colors"
         >
-          Create Product
+          {submitLoading && (
+            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+          )}
+          <span>
+            {submitLoading ? "Creating Product..." : "Create Product"}
+          </span>
         </button>
       </div>
     </div>
