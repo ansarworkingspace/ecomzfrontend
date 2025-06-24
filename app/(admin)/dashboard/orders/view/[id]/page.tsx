@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import {
   Package,
   User,
@@ -74,17 +74,14 @@ interface OrderData {
   createdAt: string;
   updatedAt: string;
 }
+const OrderViewPage = () => {
+  const { id } = useParams();
 
-export default async function OrderViewPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
   const [orderData, setOrderData] = useState<OrderData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
-  const { id } = await params;
+
   useEffect(() => {
     fetchOrderDetails();
   }, [id]);
@@ -445,4 +442,6 @@ export default async function OrderViewPage({
       </div>
     </div>
   );
-}
+};
+
+export default OrderViewPage;
