@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { ShoppingBag, Menu, X } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { deleteCookie } from "@/constant";
 
 // Header Component
 const Header = () => {
@@ -53,7 +54,7 @@ const Header = () => {
         // Clear auth token from cookies
         document.cookie =
           "authToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-
+ deleteCookie('authToken');
         // Update state
         setIsLoggedIn(false);
 

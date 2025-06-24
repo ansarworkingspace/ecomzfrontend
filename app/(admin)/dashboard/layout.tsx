@@ -53,6 +53,7 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { deleteCookie } from "@/constant";
 
 const navItems = [
   { label: "Products", href: "/dashboard/products/list" },
@@ -75,6 +76,7 @@ export default function AdminDashboardLayout({
         method: "POST",
         credentials: "include",
       });
+       deleteCookie('authToken');
     } catch (error) {
       console.error("Logout failed:", error);
     } finally {
