@@ -296,6 +296,8 @@
 
 "use client";
 
+import { EyeIcon } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 
 const OrdersListPage = () => {
@@ -371,6 +373,9 @@ const OrdersListPage = () => {
               <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">
                 Date
               </th>
+              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">
+                Actions
+              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
@@ -405,6 +410,16 @@ const OrdersListPage = () => {
                   </td>
                   <td className="px-6 py-4 text-gray-600 text-sm">
                     {new Date(order.createdAt).toLocaleDateString()}
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center space-x-2">
+                      <Link
+                        href={`/dashboard/orders/view/${order._id}`}
+                        className="text-gray-600 hover:text-black"
+                      >
+                        <EyeIcon className="w-5 h-5" />
+                      </Link>
+                    </div>
                   </td>
                 </tr>
               ))
