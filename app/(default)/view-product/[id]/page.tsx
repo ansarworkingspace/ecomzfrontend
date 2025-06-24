@@ -83,6 +83,28 @@ const ProductDetailPage = () => {
     },
   ];
 
+  const handleBuyNow = () => {
+    const orderData = {
+      productId: product._id,
+      variantId: selectedVariant._id,
+      productName: product.name,
+      sku: selectedVariant.sku,
+      quantity: quantity,
+      price: selectedVariant.price,
+      salePrice: selectedVariant.salePrice,
+      totalPrice:
+        (selectedVariant.salePrice || selectedVariant.price) * quantity,
+      image: selectedVariant.images[0],
+      variant: getVariantDisplayText(selectedVariant),
+    };
+
+    // Store order data in sessionStorage for place-order page
+    sessionStorage.setItem("orderData", JSON.stringify(orderData));
+
+    // Navigate to place order page
+    router.push("/place-order");
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 text-black">
       <div className="max-w-6xl mx-auto p-4">
@@ -261,6 +283,7 @@ const ProductDetailPage = () => {
             <div className="space-y-3">
               <button
                 disabled={selectedVariant.quantity === 0}
+                onClick={() => handleBuyNow()}
                 className="w-full py-3 bg-black text-white font-medium rounded-lg hover:bg-gray-900 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
               >
                 {selectedVariant.quantity === 0

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   ShoppingBag,
   MapPin,
@@ -14,51 +14,47 @@ import {
   ArrowLeft,
   Lock,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL_CUSTOMER;
 const PlaceOrderPage = () => {
-  const [quantities, setQuantities]: any = useState({
-    item1: 2,
-    item2: 1,
-  });
-
+  const router = useRouter();
+  const [quantities, setQuantities]: any = useState({});
   const [paymentMethod, setPaymentMethod] = useState("cod");
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
+  const [cartItems, setCartItems]: any = useState([]);
   const [shippingAddress, setShippingAddress] = useState({
-    fullName: "John Doe",
-    phone: "9923456780",
-    addressLine1: "123 Main Street, Apartment 4B",
-    addressLine2: "Near Central Park",
-    city: "New York",
-    state: "New York",
-    pincode: "10001",
-    country: "United States",
+    fullName: "",
+    phone: "",
+    addressLine1: "",
+    addressLine2: "",
+    city: "",
+    state: "",
+    pincode: "",
+    country: "India",
   });
 
-  // Sample cart items
-  const cartItems = [
-    {
-      id: "item1",
-      productName: "iPhone 15 Pro",
-      sku: "IPH15PRO-128-BLK",
-      price: 999.99,
-      salePrice: 949.99,
-      image:
-        "https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?w=300&h=300&fit=crop",
-      variant: "128GB - Black",
-      inStock: true,
-    },
-    {
-      id: "item2",
-      productName: "AirPods Pro",
-      sku: "AIRPODS-PRO-WHT",
-      price: 249.99,
-      salePrice: null,
-      image:
-        "https://images.unsplash.com/photo-1606220945770-b5b6c2c55bf1?w=300&h=300&fit=crop",
-      variant: "White",
-      inStock: true,
-    },
-  ];
+  useEffect(() => {
+    const orderData = sessionStorage.getItem("orderData");
+    if (orderData) {
+      const parsedData = JSON.parse(orderData);
+      const item = {
+        id: parsedData.variantId,
+        productId: parsedData.productId,
+        variantId: parsedData.variantId,
+        productName: parsedData.productName,
+        sku: parsedData.sku,
+        price: parsedData.price,
+        salePrice: parsedData.salePrice,
+        image: parsedData.image,
+        variant: parsedData.variant,
+        inStock: true,
+      };
+
+      setCartItems([item]);
+      setQuantities({ [parsedData.variantId]: parsedData.quantity });
+    }
+  }, []);
 
   const updateQuantity = (itemId: any, change: any) => {
     setQuantities((prev: any) => ({
@@ -73,9 +69,10 @@ const PlaceOrderPage = () => {
   };
 
   const subtotal = cartItems.reduce(
-    (sum, item) => sum + calculateItemTotal(item),
+    (sum: any, item: any) => sum + calculateItemTotal(item),
     0
   );
+
   const shippingCost = subtotal > 100 ? 0 : 25;
   const tax = subtotal * 0.1;
   const discount = subtotal > 500 ? 50 : 0;
@@ -84,11 +81,71 @@ const PlaceOrderPage = () => {
   const handlePlaceOrder = async () => {
     setIsPlacingOrder(true);
 
-    // Simulate API call
-    setTimeout(() => {
-      alert("Order placed successfully! Redirecting to order confirmation...");
+    try {
+      const orderPayload = {
+        items: cartItems.map((item: any) => ({
+          productId: item.productId,
+          variantId: item.variantId,
+          productName: item.productName,
+          sku: item.sku,
+          quantity: quantities[item.id],
+          price: item.price,
+          salePrice: item.salePrice || undefined,
+          totalPrice: calculateItemTotal(item),
+        })),
+        subtotal: parseFloat(subtotal.toFixed(2)),
+        shippingCost: parseFloat(shippingCost.toFixed(2)),
+        tax: parseFloat(tax.toFixed(2)),
+        discount: parseFloat(discount.toFixed(2)),
+        totalAmount: parseFloat(totalAmount.toFixed(2)),
+        paymentMethod,
+        paymentStatus: "pending",
+        shippingAddress,
+        status: "placed",
+      };
+
+      const response = await fetch(`${BASE_URL}/place-order/add`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(orderPayload),
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        // Clear order data from sessionStorage
+        sessionStorage.removeItem("orderData");
+
+        // Redirect to success page with order ID
+        router.push(
+          `/success-order/${result.data.orderNumber || result.data._id}`
+        );
+      } else {
+        throw new Error(result.message || "Failed to place order");
+      }
+    } catch (error) {
+      console.error("Error placing order:", error);
+      alert("Failed to place order. Please try again.");
+    } finally {
       setIsPlacingOrder(false);
-    }, 2000);
+    }
+  };
+
+  // Add validation for required fields
+  const isFormValid = () => {
+    return (
+      shippingAddress.fullName &&
+      shippingAddress.phone &&
+      shippingAddress.addressLine1 &&
+      shippingAddress.city &&
+      shippingAddress.state &&
+      shippingAddress.pincode &&
+      shippingAddress.country &&
+      cartItems.length > 0
+    );
   };
 
   return (
@@ -129,7 +186,7 @@ const PlaceOrderPage = () => {
               </div>
 
               <div className="space-y-4">
-                {cartItems.map((item) => (
+                {cartItems.map((item: any) => (
                   <div
                     key={item.id}
                     className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl"
@@ -505,7 +562,7 @@ const PlaceOrderPage = () => {
               {/* Place Order Button */}
               <button
                 onClick={handlePlaceOrder}
-                disabled={isPlacingOrder}
+                disabled={isPlacingOrder || !isFormValid()}
                 className="w-full mt-6 px-6 py-4 bg-black text-white rounded-lg font-medium hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {isPlacingOrder ? (
