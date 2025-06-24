@@ -17,6 +17,9 @@ export function middleware(request: NextRequest) {
   const publicRoutes = ["/", "/login", "/signup"];
   const isPublicRoute = publicRoutes.includes(pathname);
 
+  console.log("All cookies:", request.cookies.getAll());
+  console.log("AuthToken cookie:", request.cookies.get("authToken"));
+
   // Get token from cookies
   const token = request.cookies.get("authToken")?.value;
 
