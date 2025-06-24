@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { Eye, EyeOff, Mail, Lock, ArrowRight } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { setCookie } from "@/constant";
 
 const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -48,7 +49,7 @@ const LoginPage = () => {
       if (!response.ok) {
         throw new Error(data.message || "Login failed");
       }
-
+      setCookie("authToken", data.data.token, 7);
       console.log("Logged in successfully:", data);
       if (data.data.user.role === "admin") {
         router.push("/dashboard/products/list");
