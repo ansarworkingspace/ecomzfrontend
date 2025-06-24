@@ -75,21 +75,25 @@ interface OrderData {
   updatedAt: string;
 }
 
-export default function OrderViewPage({ params }: { params: { id: string } }) {
+export default async function OrderViewPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const [orderData, setOrderData] = useState<OrderData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
-
+  const { id } = await params;
   useEffect(() => {
     fetchOrderDetails();
-  }, [params.id]);
+  }, [id]);
 
   const fetchOrderDetails = async () => {
     try {
       setLoading(true);
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BASE_URL_ADMIN}/orders/view/${params.id}`,
+        `${process.env.NEXT_PUBLIC_BASE_URL_ADMIN}/orders/view/${id}`,
         {
           headers: {
             "Content-Type": "application/json",
@@ -174,8 +178,6 @@ export default function OrderViewPage({ params }: { params: { id: string } }) {
 
   return (
     <div className="min-h-screen bg-gray-50">
-
-
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Order Header */}
         <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
